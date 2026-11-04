@@ -1,0 +1,273 @@
+{
+  "client": "Darwin 25.6.0",
+  "server": "Linux 6.1.0-54-cloud-arm64 aarch64 GNU/Linux",
+  "docker_server": "20.10.24+dfsg1",
+  "sshfs": [
+    "fusermount3 version: 3.14.0",
+    "SSHFS version 3.7.3",
+    "FUSE library version 3.14.0",
+    "using FUSE kernel interface version 7.31"
+  ],
+  "rclone": "rclone v1.74.4",
+  "sshfs_options": "passive,allow_other,uid=65534,gid=65534,direct_io,dir_cache=no,attr_timeout=0,entry_timeout=0,negative_timeout=0,nosuid,nodev",
+  "trials": [
+    {
+      "repeat": 1,
+      "fault": "disconnect",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 0.309,
+      "after_kill_s": 0.004,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "first_block",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": null,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    },
+    {
+      "repeat": 1,
+      "fault": "unresponsive",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 12.027,
+      "after_kill_s": null,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "original",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": true,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    },
+    {
+      "repeat": 2,
+      "fault": "disconnect",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 0.312,
+      "after_kill_s": 0.007,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "first_block",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": null,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    },
+    {
+      "repeat": 2,
+      "fault": "unresponsive",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 12.027,
+      "after_kill_s": null,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "original",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": true,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    },
+    {
+      "repeat": 3,
+      "fault": "disconnect",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 0.312,
+      "after_kill_s": 0.007,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "first_block",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": null,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    },
+    {
+      "repeat": 3,
+      "fault": "unresponsive",
+      "server_mount_listed_before_cleanup": false,
+      "sandbox_running_before_cleanup": true,
+      "agent_sshfs_listed_after_cut": true,
+      "filesystem": "fuse.sshfs",
+      "agent_uid": 65534,
+      "agent_interfaces": [
+        "lo"
+      ],
+      "observed_edits": [
+        "client-1",
+        "agent-2",
+        "client-3"
+      ],
+      "read_blocked_for_s": 12.021,
+      "after_kill_s": null,
+      "read": {
+        "bytes": 0
+      },
+      "healthy_pread_bytes": 4096,
+      "new_file_after_cut": {
+        "errno": 107,
+        "error": "Socket not connected"
+      },
+      "open_writer": {
+        "second_write_errno": 107,
+        "close_errno": 107
+      },
+      "exec_in_work": {
+        "code": 126,
+        "output": "OCI runtime exec failed: exec failed: unable to start container process: chdir to cwd (\"/work\") set in config.json failed: transport endpoint is not connected: unknown"
+      },
+      "unfinished_before_cleanup": "original",
+      "client_file_after_cut": "client-3",
+      "new_file_visible_on_client": false,
+      "client_has_acknowledged_write": true,
+      "fresh_session_read_previous_edits": true,
+      "unfinished_after_cleanup": "first_block",
+      "unfinished_size_after_cleanup": 4096,
+      "cleaned": true
+    }
+  ]
+}

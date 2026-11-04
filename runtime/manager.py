@@ -7,7 +7,6 @@ import uuid
 
 from .http_api import Fault, serve
 
-PREFIX = os.environ["INSTANCE"] + "-work-"
 IMAGE = "python:3.12.10-alpine3.21"
 
 
@@ -52,20 +51,27 @@ def execute(name, argv, timeout):
     return {"exit_code": code, "output": output.decode(errors="replace")}
 
 
+def sandbox_args(name, mount=None):
+    work_mount = (["--mount", f"type=bind,src={mount},dst=/work"] if mount else
+                  ["--tmpfs", "/work:rw,nosuid,nodev,size=16m,uid=65534,gid=65534,mode=0700"])
+    return ["run", "-d", "--rm", "--pull=never", "--name", name,
+           "--network=none", "--cpus=1", "--memory=128m", "--memory-swap=128m",
+           "--pids-limit=32", "--read-only", "--cap-drop=ALL",
+           "--security-opt=no-new-privileges", "--user=65534:65534",
+           *work_mount,
+           "-w", "/work", IMAGE, "sleep", "180"]
+
+
 def dispatch(path, body, headers):
+    prefix = os.environ["INSTANCE"] + "-work-"
     if path == "/v0/provision":
         session = uuid.uuid4().hex
-        docker("run", "-d", "--rm", "--pull=never", "--name", PREFIX + session,
-               "--network=none", "--cpus=1", "--memory=128m", "--memory-swap=128m",
-               "--pids-limit=32", "--read-only", "--cap-drop=ALL",
-               "--security-opt=no-new-privileges", "--user=65534:65534",
-               "--tmpfs", "/work:rw,nosuid,nodev,size=16m,uid=65534,gid=65534,mode=0700",
-               "-w", "/work", IMAGE, "sleep", "180")
+        docker(*sandbox_args(prefix + session))
         return {"session": session}
     session = body.get("session")
     if not isinstance(session, str) or not re.fullmatch("[0-9a-f]{32}", session):
         raise Fault("invalid", "invalid session")
-    name = PREFIX + session
+    name = prefix + session
     if path in ("/v0/release", "/v0/cancel"):
         exists = docker("container", "ls", "-aq", "--filter", "name=^/" + name + "$")
         if exists.stdout.strip():
