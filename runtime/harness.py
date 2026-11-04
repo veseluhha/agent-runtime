@@ -27,7 +27,13 @@ def restore(entries, work):
             path.write_bytes(base64.b64decode(content, validate=True))
 
 
-def run_smoke(task):
+def scripted_action(task, messages, timeout):
+    return post("http://llm-proxy:8080", "/v0/next",
+                {"model": "scripted-smoke", "task_id": task.id, "messages": messages},
+                timeout=min(30, timeout))
+
+
+def run_task(task, next_action):
     started = time.monotonic()
     deadline = started + task.timeout_s
     events = []
@@ -64,15 +70,14 @@ def run_smoke(task):
                 command(["python", "-I", "-c", WRITE_FILE, relative, path.read_bytes().hex()], "setup")
         messages = [{"role": "user", "task": prompt} for prompt in task.messages]
         for _ in range(8):
-            action = post("http://llm-proxy:8080", "/v0/next",
-                          {"model": "scripted-smoke", "task_id": task.id, "messages": messages},
-                          timeout=min(30, remaining()))
+            action = next_action(task, messages, remaining())
             if action.get("done") is True:
                 break
-            argv = action["argv"]
-            result = command(argv, "agent")
-            messages.append({"role": "tool", "argv": argv, "output": result["output"],
-                             "exit_code": result["exit_code"]})
+            commands = action["commands"] if "commands" in action else [action["argv"]]
+            for argv in commands:
+                result = command(argv, "agent")
+                messages.append({"role": "tool", "argv": argv, "output": result["output"],
+                                 "exit_code": result["exit_code"]})
         else:
             raise Fault("step_limit", "model exceeded the step budget", 422)
         snapshot = command(["python", "-I", "-S", "-c", SNAPSHOT], "collect")["output"]
@@ -88,6 +93,10 @@ def run_smoke(task):
             preview = answer.read_bytes()[:1024].decode(errors="replace") if answer.is_file() else None
     finally:
         post(MANAGER, "/v0/release", {"session": session})
-    return {"task_id": task.id, "repeat": 1, "pair": "v0+scripted-mock", **verdict,
+    return {"task_id": task.id, "repeat": 1, **verdict,
             "answer_preview": preview, "outcome": "completed", "trace_id": session, "events": events,
-            "seconds": round(time.monotonic() - started, 4), "tokens_in": 0, "tokens_out": 0}
+            "seconds": round(time.monotonic() - started, 4)}
+
+
+def run_smoke(task):
+    return {**run_task(task, scripted_action), "pair": "v0+scripted-mock", "tokens_in": 0, "tokens_out": 0}

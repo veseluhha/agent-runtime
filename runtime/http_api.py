@@ -26,7 +26,7 @@ def post(base, path, body, token=None, timeout=30):
         raise Fault("transport", "connection failed", 502) from exc
 
 
-def serve(dispatch, health=lambda: None):
+def serve(dispatch, health=lambda: None, *, max_body=131072):
     class Handler(BaseHTTPRequestHandler):
         def setup(self):
             super().setup()
@@ -61,7 +61,7 @@ def serve(dispatch, health=lambda: None):
         def do_POST(self):
             def handle():
                 size = int(self.headers.get("Content-Length", 0))
-                if not 0 < size <= 131072:
+                if not 0 < size <= max_body:
                     raise Fault("invalid", "invalid body size", 413)
                 body = json.loads(self.rfile.read(size))
                 if not isinstance(body, dict):
