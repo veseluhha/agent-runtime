@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "service": {"type": "string", "const": "orders"},
+    "retries": {"type": "integer", "const": 3},
+    "debug": {"type": "boolean", "const": false}
+  },
+  "required": ["service", "retries", "debug"],
+  "additionalProperties": false
+}
