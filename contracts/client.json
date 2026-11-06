@@ -36,7 +36,6 @@
                   "type": "object",
                   "required": [
                     "task_id",
-                    "trace_id",
                     "repeat",
                     "pair",
                     "pass",
@@ -45,7 +44,9 @@
                     "seconds",
                     "tokens_in",
                     "tokens_out",
-                    "events"
+                    "mode",
+                    "response_models",
+                    "recording"
                   ],
                   "properties": {
                     "task_id": {
@@ -74,10 +75,16 @@
                       "type": "number"
                     },
                     "tokens_in": {
-                      "type": "integer"
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
                     },
                     "tokens_out": {
-                      "type": "integer"
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
                     },
                     "events": {
                       "type": "array",
@@ -111,6 +118,20 @@
                         "null"
                       ],
                       "description": "First 1024 bytes of the requested answer, decoded as UTF-8"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "const": "record"
+                    },
+                    "response_models": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "recording": {
+                      "type": "string",
+                      "description": "Local relative directory with manifest, API turns and checker result"
                     }
                   }
                 }
@@ -139,7 +160,8 @@
               }
             }
           }
-        }
+        },
+        "summary": "Run a task with the configured live model and record API turns"
       }
     },
     "/v0/tasks": {

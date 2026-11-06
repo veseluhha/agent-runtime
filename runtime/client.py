@@ -9,7 +9,7 @@ from pathlib import Path
 from .http_api import Fault, post
 
 
-def run_suite(url, token, folder=Path("results/baf/v0-scripted-mock"), required=()):
+def run_suite(url, token, folder=Path("results/baf/live"), required=()):
     task_ids = post(url, "/v0/tasks", {}, token=token)["task_ids"]
     missing = [task for task in required if task not in task_ids]
     if missing:
@@ -20,20 +20,22 @@ def run_suite(url, token, folder=Path("results/baf/v0-scripted-mock"), required=
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S-%fZ")
     path = folder / f"{stamp}.jsonl"
     passed = 0
-    print("smoke | scripted mock", flush=True)
+    print("smoke | live model", flush=True)
     with path.open("x", encoding="utf-8") as stream:
         for task_id in task_ids:
             start = time.monotonic()
             try:
                 row = post(url, "/v0/smoke", {"task_id": task_id}, token=token, timeout=200)
             except Fault as exc:
-                row = {"task_id": task_id, "repeat": 1, "pair": "v0+scripted-mock", "pass": False,
+                row = {"task_id": task_id, "repeat": 1, "pair": None, "pass": False,
                        "outcome": exc.kind, "reason": str(exc), "seconds": round(time.monotonic() - start, 4)}
             stream.write(json.dumps(row, ensure_ascii=False) + "\n")
             stream.flush()
             passed += int(row["pass"])
             status = "PASS" if row["pass"] else "FAIL"
             print(f"{task_id}  {status}  {row['seconds']:.2f} s  {row['reason']}", flush=True)
+            if row.get("pair"):
+                print(f"    {row['pair']} | {row.get('recording', '')}", flush=True)
             if row.get("answer_preview"):
                 for line in row["answer_preview"].rstrip().splitlines():
                     print("    " + line, flush=True)

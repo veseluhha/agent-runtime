@@ -16,19 +16,15 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-  llm-proxy:
-    build: {context: ., target: app}
-    command: ["python", "-m", "runtime.proxy"]
-    user: "65534:65534"
-    networks: [backend]
-    healthcheck: *health
   model-proxy:
-    profiles: [record]
     build: {context: ., target: app}
     command: ["python", "-m", "runtime.model_proxy"]
     user: "65534:65534"
     networks: [backend, provider]
     environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
@@ -41,13 +37,15 @@ services:
     entrypoint: ["python", "-m", "runtime.experiment"]
   gateway:
     build: {context: ., target: gateway}
+    user: "${LOCAL_UID:-65534}:${LOCAL_GID:-65534}"
+    volumes: [./results/baf:/results]
     environment:
       CLIENT_TOKEN: ${CLIENT_TOKEN:?set CLIENT_TOKEN in .env}
     networks: [frontend, backend]
     ports: ["127.0.0.1:${GATEWAY_PORT:-8080}:8080"]
     depends_on:
       sandbox-manager: {condition: service_healthy}
-      llm-proxy: {condition: service_healthy}
+      model-proxy: {condition: service_healthy}
     healthcheck: *health
 networks:
   provider: {}

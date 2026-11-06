@@ -27,12 +27,6 @@ def restore(entries, work):
             path.write_bytes(base64.b64decode(content, validate=True))
 
 
-def scripted_action(task, messages, timeout):
-    return post("http://llm-proxy:8080", "/v0/next",
-                {"model": "scripted-smoke", "task_id": task.id, "messages": messages},
-                timeout=min(30, timeout))
-
-
 def run_task(task, next_action):
     started = time.monotonic()
     deadline = started + task.timeout_s
@@ -96,7 +90,3 @@ def run_task(task, next_action):
     return {"task_id": task.id, "repeat": 1, **verdict,
             "answer_preview": preview, "outcome": "completed", "trace_id": session, "events": events,
             "seconds": round(time.monotonic() - started, 4)}
-
-
-def run_smoke(task):
-    return {**run_task(task, scripted_action), "pair": "v0+scripted-mock", "tokens_in": 0, "tokens_out": 0}

@@ -1,0 +1,14 @@
+--- recorded
++++ fresh-sandbox
+@@ -1,6 +1,6 @@
+ total 8
+-drwx------    4 nobody   nobody         100 Nov  6 11:08 .
+-drwxr-xr-x    1 root     root          4096 Nov  6 11:08 ..
+--rw-r--r--    1 nobody   nobody          90 Nov  6 11:08 README.md
+-drwxr-xr-x    2 nobody   nobody          60 Nov  6 11:08 config
+-drwxr-xr-x    2 nobody   nobody          60 Nov  6 11:08 src
++drwx------    4 nobody   nobody         100 Nov  6 11:10 .
++drwxr-xr-x    1 root     root          4096 Nov  6 11:10 ..
++-rw-r--r--    1 nobody   nobody          90 Nov  6 11:10 README.md
++drwxr-xr-x    2 nobody   nobody          60 Nov  6 11:10 config
++drwxr-xr-x    2 nobody   nobody          60 Nov  6 11:10 src

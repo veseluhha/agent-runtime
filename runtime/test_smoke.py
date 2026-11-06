@@ -4,10 +4,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
-
-from .harness import restore, run_smoke
-from .http_api import Fault, post
+from .harness import restore, run_task
+from .http_api import Fault
 from .tasks import TASKS
 
 
@@ -19,13 +17,6 @@ def check(task_id, name, content):
 
 
 class SmokeControls(unittest.TestCase):
-    def test_mock_uses_observed_port(self):
-        body = {"model": "scripted-b1", "messages": [
-            {"role": "user", "task": "read port"},
-            {"role": "tool", "output": "  port: 4917\n  # old port: 8080\n"}]}
-        response = post("http://llm-proxy:8080", "/v0/next", body)
-        self.assertEqual(response["argv"][-1].strip(), "4917")
-
     def test_checkers_reject_wrong_answers(self):
         readme = (TASKS["B4.1"].directory / "fixture/README.md").read_bytes()
         for task_id, name, wrong in [
@@ -45,17 +36,13 @@ class SmokeControls(unittest.TestCase):
     def test_agent_can_reason_about_a_failed_command(self):
         observations = []
 
-        def next_action(base, path, body, **kwargs):
-            if path != "/v0/next":
-                return post(base, path, body, **kwargs)
-            history = body["messages"]
+        def next_action(task, history, timeout):
             if history[-1]["role"] == "user":
                 return {"argv": ["sh", "-c", "echo OK; echo build-failed >&2; exit 1"]}
             observations.append(history[-1])
             return {"done": True}
 
-        with patch("runtime.harness.post", next_action):
-            result = run_smoke(TASKS["B1.1"])
+        result = run_task(TASKS["B1.1"], next_action)
         self.assertEqual(len(observations), 1)
         self.assertEqual(observations[0]["exit_code"], 1)
         self.assertCountEqual(observations[0]["output"].splitlines(), ["OK", "build-failed"])

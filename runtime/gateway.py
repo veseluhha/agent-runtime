@@ -1,7 +1,8 @@
 import hmac
 import os
+from pathlib import Path
 
-from .harness import run_smoke
+from .experiment import run
 from .http_api import Fault, serve
 from .tasks import TASKS
 
@@ -17,7 +18,7 @@ def dispatch(path, body, headers):
     task_id = body.get("task_id")
     if set(body) != {"task_id"} or not isinstance(task_id, str) or task_id not in TASKS:
         raise Fault("invalid", "unknown or invalid task_id")
-    return run_smoke(TASKS[task_id])
+    return run("record", Path("/results"), task_ids=[task_id])[0]
 
 
 if __name__ == "__main__":

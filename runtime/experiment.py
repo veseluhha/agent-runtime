@@ -60,12 +60,12 @@ def replay_turn(stream, request, timeout):
     return turn["response"]
 
 
-def run(mode, root, source_id=None):
+def run(mode, root, source_id=None, task_ids=IDS):
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S-%fZ")
     folder = root / mode / stamp
-    tasks = [TASKS[key] for key in IDS]
-    fingerprints = {task.id: task_digest(task) for task in tasks}
     if mode == "record":
+        tasks = [TASKS[key] for key in task_ids]
+        fingerprints = {task.id: task_digest(task) for task in tasks}
         model = post(PROXY, "/v0/model", {})["model"]
         source = folder
         meta = {"format": 1, "model": model, "tasks": fingerprints}
@@ -74,18 +74,21 @@ def run(mode, root, source_id=None):
             raise ValueError("RUN must be the ID printed by make baf-record")
         source = root / "record" / source_id
         meta = json.loads((source / "manifest.json").read_text())
+        tasks = [TASKS[key] for key in meta["tasks"]]
+        fingerprints = {task.id: task_digest(task) for task in tasks}
         if meta["format"] != 1 or meta["tasks"] != fingerprints:
             raise ValueError("recording format or task files have changed")
         model = meta["model"]
         expected = {row["task_id"]: row for row in
                     map(json.loads, (source / "results.jsonl").read_text().splitlines())}
-        if set(expected) != set(IDS):
+        if set(expected) != set(fingerprints):
             raise ValueError("recording incomplete: missing task results")
     folder.mkdir(parents=True, exist_ok=False)
     (folder / "manifest.json").write_text(json.dumps({**meta, "mode": mode, "source_run": source.name}, indent=2) + "\n")
     location = Path("results/baf") / mode / stamp
     print(f"{mode} | {model} | {location}", flush=True)
     passed = 0
+    rows = []
     with (folder / "results.jsonl").open("x") as results:
         for task in tasks:
             started = time.monotonic()
@@ -110,13 +113,15 @@ def run(mode, root, source_id=None):
                            tokens_out=recorded_out if mode == "record" else 0)
                 if mode == "replay":
                     row.update(recorded_tokens_in=recorded_in, recorded_tokens_out=recorded_out)
+                row["recording"] = str(location)
                 write_line(results, row)
+                rows.append(row)
             passed += int(row["pass"])
             print(f"{task.id}  {'PASS' if row['pass'] else 'FAIL'}  {row['reason']}", flush=True)
     print(f"{passed}/{len(tasks)} | {location}/results.jsonl", flush=True)
     if mode == "record":
         print(f"make baf-replay RUN={stamp}", flush=True)
-    return int(passed != len(tasks))
+    return rows
 
 
 def main():
@@ -124,7 +129,8 @@ def main():
     parser.add_argument("mode", choices=["record", "replay"])
     args = parser.parse_args()
     try:
-        return run(args.mode, Path("/results"), os.getenv("RUN"))
+        rows = run(args.mode, Path("/results"), os.getenv("RUN"))
+        return int(not all(row["pass"] for row in rows))
     except (Fault, ValueError, KeyError, OSError) as exc:
         sys.exit(str(exc))
 

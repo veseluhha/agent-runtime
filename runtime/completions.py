@@ -59,8 +59,10 @@ class Conversation:
                 if not isinstance(argv, list) or not argv or not all(isinstance(s, str) and "\0" not in s for s in argv):
                     raise ValueError("expected argv")
                 commands.append(argv)
-            # DeepSeek thinking mode requires reasoning_content on subsequent tool turns
-            self.messages.append({k: msg[k] for k in ("role", "content", "reasoning_content", "tool_calls") if k in msg})
+            # Preserve provider reasoning fields between tool turns
+            self.messages.append({k: msg[k] for k in
+                                  ("role", "content", "reasoning_content", "reasoning", "reasoning_details", "tool_calls")
+                                  if k in msg})
             self.pending = calls
             return {"commands": commands}
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:

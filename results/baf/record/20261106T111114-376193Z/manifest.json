@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "tasks": {
+    "B5.1": "11a94ad4968f1f4dec4d146f13e4b8048d72aac1b3fc0ce5197c0dfb44c0e7ff"
+  },
+  "mode": "record",
+  "source_run": "20261106T111114-376193Z"
+}

@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-06",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "base_url": "https://openrouter.ai/api/v1",
+  "record_run": "results/baf/record/20261106T110853-407556Z",
+  "record": {
+    "tasks": 5,
+    "passed": 5,
+    "seconds_sum": 41.159,
+    "prompt_tokens": 13919,
+    "completion_tokens": 1629,
+    "api_calls": 20,
+    "cost_usd_from_response_usage": "0.00086957360",
+    "providers": [
+      "DeepInfra"
+    ]
+  },
+  "client_summary": "results/baf/live/20261106T111044-629399Z.jsonl",
+  "client_gateway": {
+    "tasks": 5,
+    "passed": 5,
+    "seconds_sum": 36.421,
+    "prompt_tokens": 15744,
+    "completion_tokens": 1601,
+    "api_calls": 21,
+    "cost_usd_from_response_usage": "0.00083334104",
+    "providers": [
+      "DeepInfra"
+    ]
+  },
+  "successful_runs_cost_usd": "0.00170291464",
+  "earlier_auth_failure": "results/baf/record/20261106T110755-959796Z",
+  "replay": {
+    "source_run": "results/baf/record/20261106T110853-407556Z",
+    "results": "results/baf/replay/20261106T110950-085327Z/results.jsonl",
+    "passed": 4,
+    "tasks": 5,
+    "limitation": "B1.1 exact-request comparison failed because ls -la timestamps changed; independent fresh-sandbox diff saved beside replay results"
+  },
+  "validation": {
+    "client_harness_tests": 12,
+    "infrastructure_tests": 5
+  },
+  "limitations": [
+    "two runs of five simple tasks, not a full BAF benchmark or model comparison",
+    "provider routing, reasoning and sampling settings used defaults",
+    "failed authentication calls have no usage record and are excluded from cost sum"
+  ]
+}

@@ -14,14 +14,15 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def dispatch(path, body, headers):
-    model = os.getenv("DEEPSEEK_MODEL")
-    base = os.getenv("DEEPSEEK_BASE_URL", "").rstrip("/")
-    key = os.getenv("DEEPSEEK_API_KEY")
+    prefix = "LLM" if any(os.getenv("LLM_" + name) for name in ("MODEL", "BASE_URL", "API_KEY")) else "DEEPSEEK"
+    model = os.getenv(prefix + "_MODEL")
+    base = os.getenv(prefix + "_BASE_URL", "").rstrip("/")
+    key = os.getenv(prefix + "_API_KEY")
     if not (model and base and key):
-        raise Fault("configuration", "set DEEPSEEK_MODEL, DEEPSEEK_BASE_URL and DEEPSEEK_API_KEY", 503)
+        raise Fault("configuration", "set LLM_MODEL, LLM_BASE_URL and LLM_API_KEY in .env", 503)
     url = urlsplit(base)
     if url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password or url.query or url.fragment:
-        raise Fault("configuration", "invalid DEEPSEEK_BASE_URL", 503)
+        raise Fault("configuration", "invalid LLM_BASE_URL", 503)
     if path == "/v0/model":
         return {"model": model}
     if path != "/v0/completion":

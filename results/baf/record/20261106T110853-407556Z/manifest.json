@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "tasks": {
+    "B1.1": "a5528a14d9d3fd3e29878f116900308ab2df84ab22d2466ab8ccc54a47c475f5",
+    "B2.1": "ea821f4fc80601df4e45559fcc4193af41c40b3faa2fc86553af2b03e48bce69",
+    "B3.1": "d207cc9849eaa100aec6d9eccba7895ca1ec4e54393cbe6a177cd4db8598ef99",
+    "B4.1": "c3f96fc2a29b282f8248b7bba9acf7c3ebecd5fb1d2eb9b5b9cbc7190af6874e",
+    "B5.1": "11a94ad4968f1f4dec4d146f13e4b8048d72aac1b3fc0ce5197c0dfb44c0e7ff"
+  },
+  "mode": "record",
+  "source_run": "20261106T110853-407556Z"
+}
