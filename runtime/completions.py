@@ -20,10 +20,11 @@ class Conversation:
         self.usage = []
         self.models = []
 
-    def next_action(self, task, history, timeout):
+    def next_action(self, history, timeout):
         if not self.messages:
-            self.messages = [{"role": "system", "content": SYSTEM},
-                             *({"role": "user", "content": prompt} for prompt in task.messages)]
+            self.messages.append({"role": "system", "content": SYSTEM})
+        if history[-1]["role"] == "user":
+            self.messages.extend({"role": "user", "content": item["task"]} for item in history)
         if self.pending:
             for call, observation in zip(self.pending, history[-len(self.pending):]):
                 content = json.dumps({"exit_code": observation["exit_code"], "output": observation["output"]},
@@ -45,10 +46,15 @@ class Conversation:
             calls = msg.get("tool_calls") or []
             if msg["role"] != "assistant":
                 raise ValueError("unexpected role")
+            assistant = {k: msg[k] for k in
+                         ("role", "content", "reasoning_content", "reasoning", "reasoning_details", "tool_calls")
+                         if k in msg}
             if not calls and choice["finish_reason"] == "stop":
-                return {"done": True}
+                self.pending = []
+                self.messages.append(assistant)
+                return {"done": True, "text": msg.get("content")}
             if choice["finish_reason"] != "tool_calls" or not 1 <= len(calls) <= 8:
-                raise ValueError("expected completed tool calls or stop")
+                raise ValueError(f"finish_reason={choice['finish_reason']!r}, tool_calls={len(calls)}")
             commands = []
             ids = set()
             for call in calls:
@@ -60,13 +66,11 @@ class Conversation:
                     raise ValueError("expected argv")
                 commands.append(argv)
             # Preserve provider reasoning fields between tool turns
-            self.messages.append({k: msg[k] for k in
-                                  ("role", "content", "reasoning_content", "reasoning", "reasoning_details", "tool_calls")
-                                  if k in msg})
+            self.messages.append(assistant)
             self.pending = calls
             return {"commands": commands}
         except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
-            raise Fault("provider_protocol", "invalid or incomplete chat completion", 502) from exc
+            raise Fault("provider_protocol", f"invalid chat completion ({type(exc).__name__}: {exc})", 502) from exc
 
     def tokens(self, key):
         values = [usage.get(key) for usage in self.usage]

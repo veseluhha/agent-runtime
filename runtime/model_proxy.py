@@ -8,6 +8,9 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 from .http_api import Fault, serve
 
 
+PROXY = "http://model-proxy:8080"
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, *args):
         return None

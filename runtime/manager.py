@@ -8,6 +8,7 @@ import uuid
 from .http_api import Fault, serve
 
 IMAGE = "python:3.12.10-alpine3.21"
+SESSION_TTL = 180
 
 
 def docker(*args, check=True):
@@ -51,31 +52,73 @@ def execute(name, argv, timeout):
     return {"exit_code": code, "output": output.decode(errors="replace")}
 
 
-def sandbox_args(name, mount=None):
-    work_mount = (["--mount", f"type=bind,src={mount},dst=/work"] if mount else
+def sandbox_args(name, mount=None, readonly=False):
+    work_mount = (["--mount", f"type=bind,src={mount},dst=/work" + (",readonly" if readonly else "")] if mount else
                   ["--tmpfs", "/work:rw,nosuid,nodev,size=16m,uid=65534,gid=65534,mode=0700"])
     return ["run", "-d", "--rm", "--pull=never", "--name", name,
            "--network=none", "--cpus=1", "--memory=128m", "--memory-swap=128m",
            "--pids-limit=32", "--read-only", "--cap-drop=ALL",
            "--security-opt=no-new-privileges", "--user=65534:65534",
            *work_mount,
-           "-w", "/work", IMAGE, "sleep", "180"]
+           "-w", "/work", IMAGE, "sleep", str(SESSION_TTL)]
+
+
+# Inspect the bind from inside the sandbox, where subsequent commands will see it
+CHECK_WORKDIR = """
+import os
+with open('/proc/self/mountinfo') as mounts:
+    mounted = any(line.split()[4] == '/work' and line.split(' - ')[1].split()[0] == 'fuse.sshfs'
+                  for line in mounts)
+if not mounted:
+    raise SystemExit(1)
+with os.scandir('/work') as entries:
+    next(entries, None)
+"""
+
+
+def check_workdir(name):
+    try:
+        result = subprocess.run(["docker", "exec", "-w", "/", name, "python", "-I", "-S", "-c", CHECK_WORKDIR],
+                                capture_output=True, timeout=5)
+    except subprocess.TimeoutExpired as exc:
+        raise Fault("mount_lost", "client directory did not respond", 503) from exc
+    if result.returncode:
+        raise Fault("mount_lost", "client directory is unavailable", 503)
 
 
 def dispatch(path, body, headers):
     prefix = os.environ["INSTANCE"] + "-work-"
     if path == "/v0/provision":
         session = uuid.uuid4().hex
-        docker(*sandbox_args(prefix + session))
+        name = prefix + session
+        if body:
+            mount_id = body.get("mount_id")
+            if (set(body) != {"mount_id", "access"} or not isinstance(mount_id, str)
+                    or not re.fullmatch("[0-9a-f]{32}", mount_id) or body["access"] not in ("ro", "rw")):
+                raise Fault("invalid", "expected mount_id and access (ro or rw)")
+            mount = f"/tmp/agent-runtime-{mount_id}/work"
+            try:
+                docker(*sandbox_args(name, mount, readonly=body["access"] == "ro"))
+                check_workdir(name)
+            except Fault:
+                docker("rm", "-f", name, check=False)
+                raise
+        else:
+            docker(*sandbox_args(name))
         return {"session": session}
     session = body.get("session")
     if not isinstance(session, str) or not re.fullmatch("[0-9a-f]{32}", session):
         raise Fault("invalid", "invalid session")
     name = prefix + session
+    if path == "/v0/workdir":
+        check_workdir(name)
+        return {"mounted": True}
     if path in ("/v0/release", "/v0/cancel"):
-        exists = docker("container", "ls", "-aq", "--filter", "name=^/" + name + "$")
-        if exists.stdout.strip():
-            docker("rm", "-f", name)
+        removed = docker("rm", "-f", name, check=False)
+        if removed.returncode:
+            existing = docker("container", "ls", "-aq", "--filter", "name=^/" + name + "$")
+            if existing.stdout.strip():
+                raise Fault("sandbox", "could not release sandbox", 502)
         return {"released": True}
     if path == "/v0/exec":
         argv = body["argv"]

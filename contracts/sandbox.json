@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "sandbox",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "paths": {
     "/v0/provision": {
@@ -12,7 +12,35 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mount_id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{32}$"
+                      },
+                      "access": {
+                        "type": "string",
+                        "enum": [
+                          "ro",
+                          "rw"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mount_id",
+                      "access"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
               }
             }
           }
@@ -38,26 +66,7 @@
             }
           },
           "default": {
-            "description": "Failure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "error",
-                    "message"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/Error"
           }
         }
       }
@@ -121,26 +130,7 @@
             }
           },
           "default": {
-            "description": "Failure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "error",
-                    "message"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/Error"
           }
         }
       }
@@ -186,26 +176,7 @@
             }
           },
           "default": {
-            "description": "Failure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "error",
-                    "message"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/Error"
           }
         }
       }
@@ -251,23 +222,78 @@
             }
           },
           "default": {
-            "description": "Failure",
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v0/workdir": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  }
+                },
+                "required": [
+                  "session"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "error",
-                    "message"
-                  ],
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
+                    "mounted": {
+                      "type": "boolean"
                     }
-                  }
+                  },
+                  "required": [
+                    "mounted"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "Error": {
+        "description": "Failure",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "error",
+                "message"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
                 }
               }
             }

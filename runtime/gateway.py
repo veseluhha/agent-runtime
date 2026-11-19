@@ -5,12 +5,15 @@ from pathlib import Path
 from .experiment import run
 from .http_api import Fault, serve
 from .tasks import TASKS
+from .workspaces import workspace_request
 
 
 def dispatch(path, body, headers):
     if not hmac.compare_digest(headers.get("Authorization", "").encode(),
                                ("Bearer " + os.environ["CLIENT_TOKEN"]).encode()):
         raise Fault("unauthorized", "invalid token", 401)
+    if path.startswith("/v0/workspaces/"):
+        return workspace_request(path, body)
     if path == "/v0/tasks" and body == {}:
         return {"task_ids": list(TASKS)}
     if path != "/v0/smoke":

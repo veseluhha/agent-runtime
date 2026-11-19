@@ -17,8 +17,8 @@ from pathlib import Path
 
 from runtime.manager import IMAGE, sandbox_args
 
-OPTIONS = ("passive,allow_other,uid=65534,gid=65534,direct_io,dir_cache=no,"
-           "attr_timeout=0,entry_timeout=0,negative_timeout=0,nosuid,nodev")
+from runtime.mount import SSHFS_OPTIONS as OPTIONS
+
 READER = """
 import json, os, sys
 fd = os.open('/work/probe.bin', os.O_RDONLY)

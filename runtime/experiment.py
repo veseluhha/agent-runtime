@@ -11,9 +11,9 @@ from pathlib import Path
 from .completions import Conversation
 from .harness import run_task
 from .http_api import Fault, post
+from .model_proxy import PROXY
 from .tasks import TASKS
 
-PROXY = "http://model-proxy:8080"
 IDS = ("B1.1", "B2.1", "B3.1", "B4.1", "B5.1")
 
 

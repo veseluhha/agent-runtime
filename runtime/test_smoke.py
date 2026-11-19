@@ -36,9 +36,9 @@ class SmokeControls(unittest.TestCase):
     def test_agent_can_reason_about_a_failed_command(self):
         observations = []
 
-        def next_action(task, history, timeout):
+        def next_action(history, timeout):
             if history[-1]["role"] == "user":
-                return {"argv": ["sh", "-c", "echo OK; echo build-failed >&2; exit 1"]}
+                return {"commands": [["sh", "-c", "echo OK; echo build-failed >&2; exit 1"]]}
             observations.append(history[-1])
             return {"done": True}
 

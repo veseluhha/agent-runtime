@@ -20,6 +20,15 @@ class SandboxTest(unittest.TestCase):
         self.assertEqual(result["exit_code"], 0, result)
         self.assertEqual(self.call("exec", argv=["sh", "-c", "exit 7"])["exit_code"], 7)
 
+    def test_workdir_requires_a_live_sshfs_mount(self):
+        with self.assertRaises(Fault) as missing:
+            self.call("workdir")
+        self.assertEqual(missing.exception.kind, "mount_lost")
+        for body in ({"mount_id": "../work", "access": "rw"}, {"mount": "/tmp"}):
+            with self.subTest(body=body), self.assertRaises(Fault) as error:
+                post(URL, "/v0/provision", body)
+            self.assertEqual(error.exception.kind, "invalid")
+
     def test_timeout_removes_container_and_children(self):
         with self.assertRaises(Fault) as error:
             self.call("exec", argv=["sh", "-c", "sleep 45 & wait"], timeout_s=1)

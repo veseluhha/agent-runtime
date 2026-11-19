@@ -27,59 +27,63 @@ def restore(entries, work):
             path.write_bytes(base64.b64decode(content, validate=True))
 
 
-def run_task(task, next_action):
-    started = time.monotonic()
-    deadline = started + task.timeout_s
-    events = []
+class Sandbox:
+    def __init__(self, session, deadline):
+        self.deadline = deadline
+        self.session = session
+        self.events = []
 
-    def remaining():
-        seconds = deadline - time.monotonic()
+    def remaining(self):
+        seconds = self.deadline - time.monotonic()
         if seconds <= 0:
             raise Fault("timeout", "task deadline exceeded", 504)
         return seconds
 
-    session = post(MANAGER, "/v0/provision", {}, timeout=min(30, remaining()))["session"]
-
-    def command(argv, phase):
+    def command(self, argv, phase):
         start = time.monotonic()
-        budget = min(10, math.ceil(remaining()))
-        result = post(MANAGER, "/v0/exec", {"session": session, "argv": argv, "timeout_s": budget},
-                      timeout=min(30, remaining()))
+        budget = min(10, math.ceil(self.remaining()))
+        result = post(MANAGER, "/v0/exec", {"session": self.session, "argv": argv, "timeout_s": budget},
+                      timeout=min(30, self.remaining()))
         event = {"phase": phase, "tool": argv[0], "exit_code": result["exit_code"],
                  "seconds": round(time.monotonic() - start, 4)}
         if phase == "agent":
             event["argv"] = argv
-        events.append(event)
+        self.events.append(event)
         if phase != "agent" and result["exit_code"]:
             raise Fault("command", f"{argv[0]} exited with {result['exit_code']}", 422)
         return result
 
+    def run(self, prompts, next_action):
+        history = [{"role": "user", "task": prompt} for prompt in prompts]
+        for _ in range(8):
+            action = next_action(history, self.remaining())
+            if action.get("done") is True:
+                return action.get("text")
+            for argv in action["commands"]:
+                result = self.command(argv, "agent")
+                history.append({"role": "tool", "argv": argv, **result})
+        raise Fault("step_limit", "model exceeded the step budget", 422)
+
+
+def run_task(task, next_action):
+    started = time.monotonic()
+    session = post(MANAGER, "/v0/provision", {}, timeout=min(30, task.timeout_s))["session"]
+    sandbox = Sandbox(session, started + task.timeout_s)
     try:
         fixture = task.directory / "fixture"
         for path in sorted(fixture.rglob("*")):
             relative = str(path.relative_to(fixture))
             if path.is_dir():
-                command(["mkdir", "-p", relative], "setup")
+                sandbox.command(["mkdir", "-p", relative], "setup")
             else:
-                command(["python", "-I", "-c", WRITE_FILE, relative, path.read_bytes().hex()], "setup")
-        messages = [{"role": "user", "task": prompt} for prompt in task.messages]
-        for _ in range(8):
-            action = next_action(task, messages, remaining())
-            if action.get("done") is True:
-                break
-            commands = action["commands"] if "commands" in action else [action["argv"]]
-            for argv in commands:
-                result = command(argv, "agent")
-                messages.append({"role": "tool", "argv": argv, "output": result["output"],
-                                 "exit_code": result["exit_code"]})
-        else:
-            raise Fault("step_limit", "model exceeded the step budget", 422)
-        snapshot = command(["python", "-I", "-S", "-c", SNAPSHOT], "collect")["output"]
+                sandbox.command(["python", "-I", "-c", WRITE_FILE, relative, path.read_bytes().hex()], "setup")
+        sandbox.run(task.messages, next_action)
+        snapshot = sandbox.command(["python", "-I", "-S", "-c", SNAPSHOT], "collect")["output"]
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp)
             restore(json.loads(snapshot), work)
             checker = subprocess.run([sys.executable, str(task.directory / "check.py"), tmp],
-                                     capture_output=True, timeout=min(5, remaining()))
+                                     capture_output=True, timeout=min(5, sandbox.remaining()))
             if checker.returncode:
                 raise Fault("checker", "checker process failed", 500)
             verdict = json.loads(checker.stdout)
@@ -88,5 +92,5 @@ def run_task(task, next_action):
     finally:
         post(MANAGER, "/v0/release", {"session": session})
     return {"task_id": task.id, "repeat": 1, **verdict,
-            "answer_preview": preview, "outcome": "completed", "trace_id": session, "events": events,
+            "answer_preview": preview, "outcome": "completed", "trace_id": session, "events": sandbox.events,
             "seconds": round(time.monotonic() - started, 4)}

@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from .gateway import dispatch
+from .workspaces import workspace_request
 from .http_api import Fault, post
 
 
@@ -19,3 +20,49 @@ class GatewayTest(unittest.TestCase):
         with self.assertRaises(Fault) as error:
             post("http://127.0.0.1:8080", "/v0/smoke", {"task_id": "B1.1"}, token="wrong-token")
         self.assertEqual(error.exception.status, 401)
+
+    def test_workspace_messages_share_history_and_close_is_repeatable(self):
+        session = "1" * 32
+        requests = []
+
+        def service(base, path, body, **kwargs):
+            if path == "/v0/provision":
+                self.assertEqual(body, {"mount_id": "a" * 32, "access": "ro"})
+                return {"session": session}
+            if path == "/v0/model":
+                return {"model": "test"}
+            if path == "/v0/completion":
+                messages = body["request"]["messages"]
+                requests.append([m["content"] for m in messages if m["role"] != "system"])
+                return {"choices": [{"finish_reason": "stop", "message": {"role": "assistant", "content": "ok"}}]}
+            self.assertIn(path, ("/v0/workdir", "/v0/release"))
+            return {}
+
+        with patch("runtime.workspaces.post", side_effect=service) as calls:
+            opened = workspace_request("/v0/workspaces/open", {"mount_id": "a" * 32, "access": "ro"})
+            try:
+                self.assertEqual(opened["session"], session)
+                for prompt in ("first", "second"):
+                    reply = workspace_request("/v0/workspaces/message", {"session": session, "message": prompt})
+                    self.assertEqual(reply["answer"], "ok")
+                self.assertEqual(requests, [["first"], ["first", "ok", "second"]])
+            finally:
+                workspace_request("/v0/workspaces/close", {"session": session})
+            workspace_request("/v0/workspaces/close", {"session": session})
+            self.assertEqual(sum(call.args[1] == "/v0/release" for call in calls.call_args_list), 2)
+            with self.assertRaises(Fault) as closed:
+                workspace_request("/v0/workspaces/message", {"session": session, "message": "third"})
+            self.assertEqual(closed.exception.kind, "session")
+
+    def test_disconnect_before_final_answer_ends_workspace(self):
+        session = "2" * 32
+        with patch("runtime.workspaces.post", side_effect=[
+            {"model": "test"}, {"session": session}, {"mounted": True},
+            {"choices": [{"finish_reason": "stop", "message": {"role": "assistant", "content": "done"}}]},
+            Fault("mount_lost", "client directory is unavailable", 503), {"released": True}
+        ]) as services:
+            workspace_request("/v0/workspaces/open", {"mount_id": "b" * 32, "access": "rw"})
+            with self.assertRaises(Fault) as error:
+                workspace_request("/v0/workspaces/message", {"session": session, "message": "read the file"})
+            self.assertEqual(error.exception.kind, "mount_lost")
+            self.assertEqual(services.call_args.args[1], "/v0/release")
