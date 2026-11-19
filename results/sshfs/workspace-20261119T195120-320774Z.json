@@ -1,0 +1,124 @@
+{
+  "interrupted_write": {
+    "append": "original+agent",
+    "direct_bytes": 8,
+    "direct_unchanged": true,
+    "staging_bytes": null,
+    "staged_target": "original",
+    "client_edit_before_rename": "client edit",
+    "target_after_rename": "original+agent"
+  },
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "edit": {
+    "before": "# orders-cli\n\nExamples from release 1.2\n\n## Install\n\n    pip install orders-cli==1.2\n\n## Reproduce an old run\n\n    pip install orders-cli==1.2\n",
+    "after": "# orders-cli\n\nExamples from release 1.2\n\n## Install\n\n    pip install orders-cli==1.3\n\n## Reproduce an old run\n\n    pip install orders-cli==1.2\n",
+    "events": [
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.055,
+        "argv": [
+          "sh",
+          "-c",
+          "pwd && ls -la /work"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0439,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && grep -n \"Install\" -n README.md | head -50"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0583,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && cat -A README.md"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0428,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && od -c README.md"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.1799,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && python3 - <<'EOF'\nimport os, tempfile\ndata = open('README.md','rb').read()\nstart = data.index(b'## Install')\nend = data.index(b'## Reproduce')\nsec = data[start:end]\nassert sec.count(b'orders-cli==1.2') == 1, sec\nnewsec = sec.replace(b'orders-cli==1.2', b'orders-cli==1.3')\nnew = data[:start] + newsec + data[end:]\nassert len(new) == len(data)\nfd, tmp = tempfile.mkstemp(dir='.', prefix='.README.md.')\nwith os.fdopen(fd,'wb') as f:\n    f.write(new)\n    f.flush()\n    os.fsync(f.fileno())\nst = os.stat('README.md')\nos.chmod(tmp, st.st_mode & 0o7777)\nos.replace(tmp, 'README.md')\nprint('ok')\nEOF"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0601,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && cat -A README.md && ls -la && od -c README.md | tail -5"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0401,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && diff <(printf '%s' \"$(cat README.md)\") /dev/null | head -30"
+        ]
+      }
+    ],
+    "read_events": [
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0971,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && ls -la && cat receipt.txt 2>&1 | head -50"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0527,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && od -c receipt.txt"
+        ]
+      }
+    ],
+    "client_value": "be6d1be8090bf29f",
+    "answer": "Содержимое `/work/receipt.txt` (16 байт, без завершающего перевода строки):\n\n```\nbe6d1be8090bf29f\n```\n\nЭто одна строка из 16 шестнадцатеричных символов и больше ничего — ни переводов строки, ни пробелов (проверено через `od -c`)."
+  },
+  "read_only": true,
+  "disconnect": "mount_lost",
+  "cleaned": true
+}

@@ -3,6 +3,7 @@ import os
 import shlex
 import socket
 import subprocess
+import tempfile
 import time
 import uuid
 from contextlib import ExitStack, contextmanager
@@ -43,13 +44,16 @@ def export_directory(folder, host, config, access):
     if config:
         ssh.extend(["-F", str(config)])
     ssh.extend(["--", host])
-    command = shlex.join(["sh", "-c", MOUNT, "mount-workdir", directory, SSHFS_OPTIONS + "," + access])
+    command = shlex.join(["sh", "-c", MOUNT, "mount-workdir", directory, SSHFS_OPTIONS + ",sshfs_sync," + access])
     rclone = ["rclone", "--config", "/dev/null", "serve", "sftp", str(folder), "--stdio",
-              "--transfers", "1", "--dir-cache-time", "0s", "--vfs-cache-mode", "off",
+              "--transfers", "1", "--dir-cache-time", "0s",
               "--exclude", ".git", "--exclude", ".git/**"]
     if access == "ro":
         rclone.append("--read-only")
     with ExitStack() as stack:
+        if access == "rw":
+            cache = stack.enter_context(tempfile.TemporaryDirectory(prefix="workdir-cache-"))
+            rclone.extend(["--cache-dir", cache, "--vfs-cache-mode", "writes", "--vfs-write-back", "0s"])
         left, right = socket.socketpair()
         with left, right:
             server = subprocess.Popen(rclone, stdin=left, stdout=left,
