@@ -95,7 +95,7 @@ class RecordingTest(unittest.TestCase):
         tape.seek(0)
         replay = Conversation("test-id", lambda req, timeout: replay_turn(tape, req, timeout))
         replay.next_action(history, 5)
-        with self.assertRaisesRegex(Fault, "differs"):
+        with self.assertRaisesRegex(Fault, "message 4: exit code 0 -> 1"):
             replay.next_action(observed[:-1] + [{**observed[-1], "exit_code": 1}], 5)
 
     def test_provider_error_is_saved_and_replayed(self):

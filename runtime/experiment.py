@@ -42,6 +42,30 @@ def record_turn(stream, request, timeout):
         write_line(stream, row)
 
 
+def request_difference(recorded, actual):
+    for index, (old, new) in enumerate(zip(recorded.get("messages", []), actual.get("messages", []))):
+        if old == new:
+            continue
+        field = next((key for key in sorted(old.keys() | new.keys()) if old.get(key) != new.get(key)), None)
+        if old.get("role") == new.get("role") == "tool" and field == "content":
+            try:
+                before, after = json.loads(old["content"]), json.loads(new["content"])
+                valid = all(isinstance(v, dict) and isinstance(v.get("output"), str)
+                            and "exit_code" in v for v in (before, after))
+            except (ValueError, TypeError):
+                valid = False
+            if not valid:
+                return f"message {index}: tool observation differs"
+            if before["exit_code"] != after["exit_code"]:
+                return f"message {index}: exit code {before['exit_code']} -> {after['exit_code']}"
+            lines = zip(before["output"].splitlines(keepends=True), after["output"].splitlines(keepends=True))
+            for number, (left, right) in enumerate(lines, 1):
+                if left != right:
+                    return f"message {index}, output line {number}: {left[:120]!r} -> {right[:120]!r}"
+        return f"message {index}: {field or 'message fields'} differs"
+    return "request fields or message count differ"
+
+
 def replay_turn(stream, request, timeout):
     line = stream.readline()
     if not line:
@@ -54,7 +78,7 @@ def replay_turn(stream, request, timeout):
     except (KeyError, TypeError, ValueError) as exc:
         raise Fault("replay", "invalid or incomplete recorded turn") from exc
     if original != request:
-        raise Fault("replay", "request or tool output differs from the recording")
+        raise Fault("replay", "request differs from the recording: " + request_difference(original, request))
     if "error" in turn:
         raise Fault(turn["error"]["kind"], turn["error"]["message"])
     return turn["response"]
@@ -103,7 +127,9 @@ def run(mode, root, source_id=None, task_ids=IDS):
                            "outcome": exc.kind, "seconds": round(time.monotonic() - started, 4)}
                 if mode == "replay":
                     fields = ("outcome", "pass", "answer_preview")
-                    if stream.read().strip() or any(row.get(k) != expected[task.id].get(k) for k in fields):
+                    if row["outcome"] == "replay":
+                        row["outcome"] = "replay_mismatch"
+                    elif stream.read().strip() or any(row.get(k) != expected[task.id].get(k) for k in fields):
                         row.update({"pass": False, "outcome": "replay_mismatch",
                                     "reason": "unused turns or result differs: " + row["reason"]})
                 recorded_in = chat.tokens("prompt_tokens")
