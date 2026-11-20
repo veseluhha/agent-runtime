@@ -1,10 +1,12 @@
 import base64
 import json
 import math
+import os
 import subprocess
 import sys
 import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from .http_api import Fault, post
@@ -65,11 +67,19 @@ class Sandbox:
         raise Fault("step_limit", "model exceeded the step budget", 422)
 
 
+@contextmanager
+def fresh_sandbox(timeout_s):
+    deadline = time.monotonic() + timeout_s
+    session = post(MANAGER, "/v0/provision", {}, timeout=min(30, timeout_s))["session"]
+    try:
+        yield Sandbox(session, deadline)
+    finally:
+        post(MANAGER, "/v0/release", {"session": session})
+
+
 def run_task(task, next_action):
     started = time.monotonic()
-    session = post(MANAGER, "/v0/provision", {}, timeout=min(30, task.timeout_s))["session"]
-    sandbox = Sandbox(session, started + task.timeout_s)
-    try:
+    with fresh_sandbox(task.timeout_s) as sandbox:
         fixture = task.directory / "fixture"
         for path in sorted(fixture.rglob("*")):
             relative = str(path.relative_to(fixture))
@@ -82,15 +92,17 @@ def run_task(task, next_action):
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp)
             restore(json.loads(snapshot), work)
-            checker = subprocess.run([sys.executable, str(task.directory / "check.py"), tmp],
-                                     capture_output=True, timeout=min(5, sandbox.remaining()))
+            try:
+                checker = subprocess.run([sys.executable, str(task.directory / "check.py"), tmp],
+                                         env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1])},
+                                         capture_output=True, timeout=min(task.checker_timeout_s, sandbox.remaining()))
+            except subprocess.TimeoutExpired as exc:
+                raise Fault("checker", "checker deadline exceeded", 504) from exc
             if checker.returncode:
                 raise Fault("checker", "checker process failed", 500)
             verdict = json.loads(checker.stdout)
             answer = work / task.answer_file
             preview = answer.read_bytes()[:1024].decode(errors="replace") if answer.is_file() else None
-    finally:
-        post(MANAGER, "/v0/release", {"session": session})
     return {"task_id": task.id, "repeat": 1, **verdict,
-            "answer_preview": preview, "outcome": "completed", "trace_id": session, "events": sandbox.events,
+            "answer_preview": preview, "outcome": "completed", "trace_id": sandbox.session, "events": sandbox.events,
             "seconds": round(time.monotonic() - started, 4)}

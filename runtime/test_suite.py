@@ -35,6 +35,14 @@ class SuiteTest(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "B2.1"):
                 run_suite("", "token", required=("B1.1", "B2.1"))
 
+    def test_checkpoint_skips_tasks_added_after_it(self):
+        responses = [{"task_ids": ["B1.1", "B6.1"]},
+                     {"task_id": "B1.1", "pass": True, "seconds": 1, "reason": "ok"}]
+        with tempfile.TemporaryDirectory() as tmp, patch("runtime.client.post", side_effect=responses) as calls:
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(run_suite("", "token", Path(tmp), required=("B1.1",)), 0)
+            self.assertEqual(calls.call_args.args[2], {"task_id": "B1.1"})
+
     def test_reconnect_resubmits_only_an_unreceived_message(self):
         result = {"answer": "done", "events": []}
         lost = TransportError("transport", "no response", 502)

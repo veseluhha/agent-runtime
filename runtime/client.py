@@ -16,6 +16,8 @@ def run_suite(url, token, folder=Path("results/baf/live"), required=()):
     missing = [task for task in required if task not in task_ids]
     if missing:
         sys.exit("в реестре отсутствуют задачи ЧП1 -- " + ", ".join(missing))
+    if required:
+        task_ids = required
     if not task_ids:
         sys.exit("no simple tasks registered")
     folder.mkdir(parents=True, exist_ok=True)

@@ -11,6 +11,7 @@ class Task:
     messages: list
     answer_file: str
     timeout_s: int
+    checker_timeout_s: int = 5
 
 
 def load_tasks(root):
@@ -20,7 +21,7 @@ def load_tasks(root):
         if data["level"] != "simple":
             continue
         task = Task(data["id"], manifest.parent, data["messages"],
-                    data["answer_file"], data["timeout_s"])
+                    data["answer_file"], data["timeout_s"], data.get("checker_timeout_s", 5))
         answer = Path(task.answer_file)
         if task.id in tasks or answer.is_absolute() or ".." in answer.parts:
             raise ValueError(f"invalid task manifest: {manifest}")

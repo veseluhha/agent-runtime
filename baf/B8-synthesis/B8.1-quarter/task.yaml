@@ -1,0 +1,7 @@
+id: B8.1
+baf: B8
+level: simple
+messages:
+  - "Посчитай чистую сумму продаж за первый квартал 2026 года по всем файлам sales/*.csv. Отрицательные суммы -- возвраты. Запиши в answer.txt только сумму в рублях"
+answer_file: answer.txt
+timeout_s: 60
