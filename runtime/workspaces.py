@@ -1,7 +1,9 @@
+import logging
 import re
 import threading
 import time
 from dataclasses import dataclass
+from typing import Optional
 
 from .completions import Conversation
 from .harness import MANAGER, Sandbox
@@ -13,8 +15,8 @@ from .model_proxy import PROXY
 @dataclass
 class Message:
     prompt: str
-    result: dict = None
-    error: dict = None
+    result: Optional[dict] = None
+    error: Optional[dict] = None
 
     def status(self):
         if self.error is not None:
@@ -117,8 +119,13 @@ def workspace_request(path, body):
             workspace.running = False
         if message_id is None:
             forget_session(session)
-        post(MANAGER, "/v0/release", {"session": session})
-        raise
+        try:
+            post(MANAGER, "/v0/release", {"session": session})
+        except Fault as cleanup:
+            logging.getLogger(__name__).warning("sandbox release failed for %s: %s", session, cleanup)
+        if fault is exc:
+            raise
+        raise fault from exc
     with workspaces_lock:
         message.result = {"session": session, "answer": answer, "events": sandbox.events}
         workspace.running = False

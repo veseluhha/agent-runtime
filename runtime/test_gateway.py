@@ -110,7 +110,8 @@ class GatewayTest(unittest.TestCase):
         key = {"session": session, "message_id": "c" * 32}
         message = {**key, "message": "read file"}
         with patch("runtime.workspaces.post", side_effect=[
-            {"model": "test"}, {"session": session}, Fault("mount_lost", "gone", 503), {}, {}
+            {"model": "test"}, {"session": session}, Fault("mount_lost", "gone", 503),
+            Fault("transport", "release response lost", 502), {}
         ]) as calls:
             workspace_request("/v0/workspaces/open", {"mount_id": "d" * 32, "access": "ro"})
             try:
