@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "client",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "paths": {
     "/v0/smoke": {
@@ -264,6 +264,10 @@
                   "message": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "message_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
                   }
                 },
                 "required": [
@@ -281,31 +285,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "session": {
-                      "type": "string",
-                      "pattern": "^[0-9a-f]{32}$"
-                    },
-                    "answer": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "events": {
-                      "type": "array",
-                      "items": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "required": [
-                    "session",
-                    "answer",
-                    "events"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/MessageResult"
                 }
               }
             }
@@ -313,7 +293,8 @@
           "default": {
             "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "summary": "Run a message, deduplicated within its session when message_id is supplied"
       }
     },
     "/v0/workspaces/close": {
@@ -363,6 +344,107 @@
           }
         }
       }
+    },
+    "/v0/workspaces/status": {
+      "post": {
+        "summary": "Look up a message without starting it",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "message_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  }
+                },
+                "required": [
+                  "session",
+                  "message_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "State of this message in the live session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "enum": [
+                            "running",
+                            "not_received"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "const": "completed"
+                        },
+                        "result": {
+                          "$ref": "#/components/schemas/MessageResult"
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "result"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "const": "failed"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "kind",
+                        "message",
+                        "status"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -394,6 +476,35 @@
             }
           }
         }
+      }
+    },
+    "schemas": {
+      "MessageResult": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "session",
+          "answer",
+          "events"
+        ],
+        "additionalProperties": false
       }
     }
   },
