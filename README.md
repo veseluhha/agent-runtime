@@ -67,7 +67,7 @@ make baf-replay RUN=<run-id>
 
 Replay выполняет команды в новых контейнерах, сверяет контекст и вывод инструментов с записью и повторяет проверку файлов. Для повтора с подготовленными образами достаточно Docker и каталога записи. Ключ и доступ к API не требуются. Результаты повтора сохраняются отдельно в `results/baf/replay/<RUN>/`
 
-[Устройство харнеса](docs/harness.md) · [Протоколы HTTP](contracts/README.md) · [Изоляция контейнеров](docs/adr/0001-sandbox.md) · [Проба SSHFS на двух машинах](experiments/sshfs/README.md) · [Результаты](docs/report.md)
+[Блок-схема КТ2 на срезе 50ed303](docs/architecture.svg) · [Устройство харнеса](docs/harness.md) · [Протоколы HTTP](contracts/README.md) · [Изоляция контейнеров](docs/adr/0001-sandbox.md) · [Проба SSHFS на двух машинах](experiments/sshfs/README.md) · [Результаты](docs/report.md)
 
 ## Результаты
 

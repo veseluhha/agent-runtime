@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1540" height="1320" viewBox="0 0 1540 1320" role="img" aria-labelledby="title desc">
+<title id="title">Agent Runtime -- архитектура на срезе 50ed303</title>
+<desc id="desc">Диаграмма трека A. Верхняя часть показывает Mac, Linux-хост, компоненты в контейнерах, внешний провайдер и каналы данных. Ниже показаны жизненный цикл сообщения, восстановление и сохранение трейсов БАФ.</desc>
+<defs>
+<style>
+text { font-family: Inter, Arial, sans-serif; fill: #192f43 }
+.head { font-size: 34px; font-weight: 700 } .section { font-size: 22px; font-weight: 700 }
+.sub { font-size: 17px; fill: #445b69 } .nodeTitle { font-size: 19px; font-weight: 700 }
+.detail { font-size: 15px } .label { font-size: 13px; font-weight: 600; fill: #345578 }
+.dataLabel { font-size: 13px; font-weight: 600; fill: #17645b }
+.area { fill: #f5f8fb; stroke: #a9bbc8; stroke-width: 1.6 }
+.group { fill: #e8eff8; stroke: #92abc8; stroke-width: 1.3 }
+.node { fill: white; stroke: #8099b0; stroke-width: 1.5 }
+.data { fill: #edf8f4; stroke: #6a9b8e; stroke-width: 1.6 }
+.external { fill: #fff8ea; stroke: #bd9955; stroke-width: 1.5 }
+.edge,.io { fill: none; stroke-width: 2; stroke-linejoin: round }
+.edge { stroke: #42658a } .io { stroke: #277565 }
+.rule { fill: #d3dce3; stroke: none }
+</style>
+<marker id="edge" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#42658a"/></marker>
+<marker id="io" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#277565"/></marker>
+</defs><rect width="1540" height="1320" fill="#fff"/>
+<text x="34" y="48" class="head" text-anchor="start">Agent Runtime</text>
+<text x="35" y="77" class="sub" text-anchor="start">КТ2  /  трек A  /  реализация 50ed303  /  20 ноября 2026</text>
+<rect x="32" y="104" width="334" height="591" rx="12" class="area"/>
+<rect x="388" y="104" width="799" height="591" rx="12" class="area"/>
+<rect x="1208" y="104" width="300" height="591" rx="12" class="area"/>
+<text x="51" y="140" class="section" text-anchor="start">Mac · машина пользователя</text>
+<text x="410" y="140" class="section" text-anchor="start">Debian · Linux-хост</text>
+<text x="1230" y="140" class="section" text-anchor="start">Внешняя сеть</text>
+<rect x="412" y="169" width="752" height="123" rx="12" class="group"/>
+<text x="430" y="194" class="label" text-anchor="start">Контейнер gateway</text>
+<path d="M342 236 H431" class="edge" marker-end="url(#edge)"/>
+<path d="M431 258 H342" class="edge" marker-end="url(#edge)"/>
+<rect x="53" y="202" width="289" height="76" rx="8" class="node"/>
+<text x="66" y="228" class="nodeTitle" text-anchor="start">CLI</text>
+<text x="66" y="249" class="detail" text-anchor="start">HTTP-токен · session · message_id</text>
+<text x="66" y="267" class="detail" text-anchor="start">команды и ответ в терминале</text>
+<rect x="431" y="203" width="287" height="75" rx="8" class="node"/>
+<text x="444" y="229" class="nodeTitle" text-anchor="start">Gateway / Workspace</text>
+<text x="444" y="250" class="detail" text-anchor="start">проверка bearer · результаты в RAM</text>
+<text x="444" y="268" class="detail" text-anchor="start">состояние сообщения по ID</text>
+<path d="M718 235 H819" class="edge" marker-end="url(#edge)"/>
+<path d="M819 257 H718" class="edge" marker-end="url(#edge)"/>
+<rect x="819" y="203" width="322" height="75" rx="8" class="node"/>
+<text x="832" y="229" class="nodeTitle" text-anchor="start">Харнес / Conversation</text>
+<text x="832" y="250" class="detail" text-anchor="start">сообщения → решение модели</text>
+<text x="832" y="268" class="detail" text-anchor="start">argv, дедлайн и события команды</text>
+<text x="775" y="225" class="label" text-anchor="middle">prompt</text>
+<text x="775" y="275" class="label" text-anchor="middle">answer</text>
+<text x="382" y="226" class="label" text-anchor="middle">HTTP</text>
+<path d="M192 278 V355" class="edge" marker-end="url(#edge)"/>
+<text x="206" y="324" class="label" text-anchor="start">выбор --workdir</text>
+<rect x="53" y="355" width="289" height="72" rx="8" class="data"/>
+<text x="66" y="381" class="nodeTitle" text-anchor="start">Исходная папка</text>
+<text x="66" y="402" class="detail" text-anchor="start">редактор пользователя</text>
+<text x="66" y="420" class="detail" text-anchor="start">публикация на Mac</text>
+<path d="M168 427 V478" class="io" marker-end="url(#io)" marker-start="url(#io)"/>
+<text x="178" y="451" class="dataLabel" text-anchor="start">снимок / публикация</text>
+<rect x="53" y="478" width="289" height="73" rx="8" class="data"/>
+<text x="66" y="504" class="nodeTitle" text-anchor="start">Рабочая копия rw</text>
+<text x="66" y="525" class="detail" text-anchor="start">сверка версии каждого файла</text>
+<text x="66" y="543" class="detail" text-anchor="start">конфликт → .agent-edits</text>
+<path d="M168 551 V596" class="io" marker-end="url(#io)" marker-start="url(#io)"/>
+<text x="179" y="578" class="dataLabel" text-anchor="start">rw</text>
+<path d="M342 391 H352 V614 H342" class="io" marker-end="url(#io)"/>
+<text x="325" y="465" class="dataLabel" text-anchor="start">ro</text>
+<rect x="53" y="596" width="289" height="72" rx="8" class="data"/>
+<text x="66" y="622" class="nodeTitle" text-anchor="start">rclone на Mac</text>
+<text x="66" y="643" class="detail" text-anchor="start">SFTP через стандартные потоки</text>
+<text x="66" y="661" class="detail" text-anchor="start">обслуживает выбранное дерево</text>
+<path d="M342 630 H454" class="io" marker-end="url(#io)" marker-start="url(#io)"/>
+<text x="395" y="618" class="dataLabel" text-anchor="middle">SFTP / SSH</text>
+<rect x="454" y="591" width="314" height="78" rx="8" class="data"/>
+<text x="467" y="617" class="nodeTitle" text-anchor="start">SSHFS / FUSE на хосте</text>
+<text x="467" y="638" class="detail" text-anchor="start">sshfs -o passive</text>
+<text x="467" y="656" class="detail" text-anchor="start">/tmp/agent-runtime-ID/work</text>
+<path d="M923 611 H768" class="io" marker-end="url(#io)" marker-start="url(#io)"/>
+<text x="846" y="600" class="dataLabel" text-anchor="middle">bind /work</text>
+<path d="M998 278 V345" class="edge" marker-end="url(#edge)" marker-start="url(#edge)"/>
+<text x="1009" y="318" class="label" text-anchor="start">HTTP · контекст</text>
+<rect x="842" y="345" width="299" height="74" rx="8" class="node"/>
+<text x="855" y="371" class="nodeTitle" text-anchor="start">Контейнер model-proxy</text>
+<text x="855" y="392" class="detail" text-anchor="start">ключ и выбор провайдера</text>
+<text x="855" y="410" class="detail" text-anchor="start">ответ модели → харнес</text>
+<path d="M1141 383 H1232" class="edge" marker-end="url(#edge)" marker-start="url(#edge)"/>
+<text x="1187" y="370" class="label" text-anchor="middle">HTTPS</text>
+<rect x="1232" y="345" width="252" height="74" rx="8" class="external"/>
+<text x="1245" y="371" class="nodeTitle" text-anchor="start">Провайдер модели</text>
+<text x="1245" y="392" class="detail" text-anchor="start">Chat Completions</text>
+<text x="1245" y="410" class="detail" text-anchor="start">tool_calls / stop / usage</text>
+<path d="M564 278 V433" class="edge" marker-end="url(#edge)"/>
+<text x="574" y="340" class="label" text-anchor="start">HTTP · provision</text>
+<text x="574" y="360" class="label" text-anchor="start">workdir / release</text>
+<path d="M864 278 V316 H788 V433" class="edge" marker-end="url(#edge)" marker-start="url(#edge)"/>
+<text x="799" y="386" class="label" text-anchor="start">exec</text>
+<rect x="555" y="433" width="279" height="78" rx="8" class="node"/>
+<text x="568" y="459" class="nodeTitle" text-anchor="start">Контейнер менеджера</text>
+<text x="568" y="480" class="detail" text-anchor="start">session → имя контейнера</text>
+<text x="568" y="498" class="detail" text-anchor="start">код и вывод → харнес</text>
+<path d="M834 473 H921" class="edge" marker-end="url(#edge)"/>
+<text x="878" y="461" class="label" text-anchor="middle">socket</text>
+<rect x="921" y="433" width="220" height="78" rx="8" class="node"/>
+<text x="934" y="459" class="nodeTitle" text-anchor="start">Docker daemon</text>
+<text x="934" y="480" class="detail" text-anchor="start">run / exec / rm</text>
+<text x="934" y="498" class="detail" text-anchor="start">жизнь сандбокса</text>
+<path d="M1023 511 V557" class="edge" marker-end="url(#edge)"/>
+<text x="1036" y="539" class="label" text-anchor="start">argv</text>
+<rect x="923" y="557" width="218" height="88" rx="8" class="node"/>
+<text x="936" y="583" class="nodeTitle" text-anchor="start">Сандбокс</text>
+<text x="936" y="604" class="detail" text-anchor="start">UID 65534 · без сети</text>
+<text x="936" y="622" class="detail" text-anchor="start">rootfs ro · /work</text>
+<text x="1232" y="505" class="detail" text-anchor="start">провайдер видит контекст,</text>
+<text x="1232" y="527" class="detail" text-anchor="start">включая вывод инструментов</text>
+<text x="1232" y="574" class="detail" text-anchor="start">сандбокс не получает ключ</text>
+<text x="1232" y="596" class="detail" text-anchor="start">и не ходит в интернет</text>
+<text x="49" y="719" class="sub" text-anchor="start">Синие стрелки -- управление и ответы. Зеленые -- файловые данные. SSH-соединение для пассивного SSHFS открывает клиент.</text>
+<text x="34" y="770" class="section" text-anchor="start">Жизнь одного сообщения</text>
+<rect x="34" y="799" width="267" height="82" rx="8" class="node"/>
+<text x="47" y="825" class="nodeTitle" text-anchor="start">1   Открыть</text>
+<text x="47" y="846" class="detail" text-anchor="start">Mac готовит экспорт и mount</text>
+<text x="47" y="864" class="detail" text-anchor="start">open → provision → session</text>
+<path d="M301 839 H329" class="edge" marker-end="url(#edge)"/>
+<rect x="329" y="799" width="266" height="82" rx="8" class="node"/>
+<text x="342" y="825" class="nodeTitle" text-anchor="start">2   Принять</text>
+<text x="342" y="846" class="detail" text-anchor="start">новый message_id и текст</text>
+<text x="342" y="864" class="detail" text-anchor="start">проверить /work и занять ID</text>
+<path d="M595 839 H623" class="edge" marker-end="url(#edge)"/>
+<rect x="623" y="799" width="266" height="82" rx="8" class="node"/>
+<text x="636" y="825" class="nodeTitle" text-anchor="start">3   Выполнить</text>
+<text x="636" y="846" class="detail" text-anchor="start">модель → exec → наблюдение</text>
+<text x="636" y="864" class="detail" text-anchor="start">повтор до stop или лимита</text>
+<path d="M889 839 H917" class="edge" marker-end="url(#edge)"/>
+<rect x="917" y="799" width="266" height="82" rx="8" class="node"/>
+<text x="930" y="825" class="nodeTitle" text-anchor="start">4   Зафиксировать</text>
+<text x="930" y="846" class="detail" text-anchor="start">проверка /work → completed</text>
+<text x="930" y="864" class="detail" text-anchor="start">ошибка → failed и release</text>
+<path d="M1183 839 H1211" class="edge" marker-end="url(#edge)"/>
+<rect x="1211" y="799" width="296" height="82" rx="8" class="node"/>
+<text x="1224" y="825" class="nodeTitle" text-anchor="start">5   Опубликовать</text>
+<text x="1224" y="846" class="detail" text-anchor="start">Mac сверяет вытесненный файл</text>
+<text x="1224" y="864" class="detail" text-anchor="start">close → release, снятие mount</text>
+<rect x="34" y="910" width="1473" height="87" rx="12" class="area"/>
+<text x="53" y="941" class="nodeTitle" text-anchor="start">Потерян HTTP-ответ</text>
+<text x="53" y="967" class="detail" text-anchor="start">status(session, message_id)</text>
+<text x="339" y="940" class="detail" text-anchor="start">not_received → послать тот же ID</text>
+<text x="339" y="967" class="detail" text-anchor="start">running → дождаться итога</text>
+<text x="733" y="940" class="detail" text-anchor="start">completed → получить старый ответ</text>
+<text x="733" y="967" class="detail" text-anchor="start">failed → показать ошибку</text>
+<text x="1135" y="940" class="detail" text-anchor="start">утрата состояния → unconfirmed</text>
+<text x="1135" y="967" class="detail" text-anchor="start">SSHFS пропал → mount_lost</text>
+<text x="34" y="1044" class="section" text-anchor="start">Где остаются результаты</text>
+<rect x="34" y="1067" width="455" height="86" rx="8" class="data"/>
+<text x="47" y="1093" class="nodeTitle" text-anchor="start">Диалог с папкой</text>
+<text x="47" y="1114" class="detail" text-anchor="start">состояние и события -- RAM gateway до close/TTL</text>
+<text x="47" y="1132" class="detail" text-anchor="start">итоговые файлы и конфликты -- на Mac</text>
+<rect x="540" y="1067" width="444" height="86" rx="8" class="node"/>
+<text x="553" y="1093" class="nodeTitle" text-anchor="start">БАФ · отдельный режим</text>
+<text x="553" y="1114" class="detail" text-anchor="start">runner или gateway → чистая tmpfs → чекер</text>
+<text x="553" y="1132" class="detail" text-anchor="start">record / replay пишут результаты в /results</text>
+<rect x="1036" y="1067" width="471" height="86" rx="8" class="data"/>
+<text x="1049" y="1093" class="nodeTitle" text-anchor="start">Диск оператора</text>
+<text x="1049" y="1114" class="detail" text-anchor="start">bind /results → results/baf на Linux-хосте</text>
+<text x="1049" y="1132" class="detail" text-anchor="start">manifest.json, ходы модели и results.jsonl</text>
+<path d="M984 1110 H1036" class="io" marker-end="url(#io)"/>
+<rect x="34" y="1180" width="1473" height="107" rx="12" class="area"/>
+<text x="53" y="1210" class="nodeTitle" text-anchor="start">Границы версии 50ed303</text>
+<text x="53" y="1238" class="detail" text-anchor="start">Работает: 8 итераций, exec до 10 с из бюджета, TTL контейнера 180 с, cancel/release у менеджера, Ctrl-C с попыткой close у CLI.</text>
+<text x="53" y="1263" class="detail" text-anchor="start">В плане: поток событий с курсором, подтверждаемая отмена из клиента, восстановление диалога после рестарта gateway, права отдельного пользователя.</text>
+</svg>
