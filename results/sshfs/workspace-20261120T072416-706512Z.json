@@ -1,0 +1,21 @@
+{
+  "client": "Darwin 25.6.0",
+  "server": "Linux 6.1.0-56-cloud-arm64 aarch64 GNU/Linux",
+  "rclone": "rclone v1.74.4",
+  "sshfs": "fusermount3 version: 3.14.0",
+  "docker": "20.10.24+dfsg1",
+  "cli_conflict": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "commands": [
+      "0 | ['sh', '-c', \"cat -A ticket.txt | head -50; echo '---'; ls -la\"]",
+      "0 | ['cat', 'README.md']",
+      "0 | ['sh', '-c', \"printf 'AGENT\\\\n' > ticket.txt && cat -A ticket.txt\"]"
+    ],
+    "status": "conflict",
+    "path_reported": true,
+    "original_path": "MAC\n",
+    "agent_conflict_file": "AGENT\n"
+  },
+  "scenario": "cli-conflict",
+  "cleaned": true
+}

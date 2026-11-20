@@ -1,0 +1,152 @@
+{
+  "client": "Darwin 25.6.0",
+  "server": "Linux 6.1.0-56-cloud-arm64 aarch64 GNU/Linux",
+  "rclone": "rclone v1.74.4",
+  "sshfs": "fusermount3 version: 3.14.0",
+  "docker": "20.10.24+dfsg1",
+  "competing_edits": [
+    {
+      "moment": "clean",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "atomic exchange",
+        "next Debian turn read the new Mac contents"
+      ],
+      "original_path": "base+agent",
+      "agent_conflict_file": null,
+      "conflicts": 0
+    },
+    {
+      "moment": "before_check",
+      "steps": [
+        "Debian wrote staging with append; Mac still contains base",
+        "Mac editor saved user"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "before_exchange",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac editor saved user",
+        "atomic exchange"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "open_fd_before_exchange",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac saved user through an already open descriptor",
+        "atomic exchange"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "during_restore",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac editor saved user",
+        "atomic exchange",
+        "Mac editor saved last"
+      ],
+      "original_path": "last",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    }
+  ],
+  "interrupted_write": {
+    "direct_unchanged": true,
+    "staged_target": "original"
+  },
+  "cli_conflict": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "commands": [
+      "0 | ['sh', '-c', 'cd /work && cat ticket.txt']",
+      "0 | ['sh', '-c', \"cd /work && printf 'AGENT\\\\n' > ticket.txt && od -c ticket.txt\"]"
+    ],
+    "status": "conflict",
+    "path_reported": true,
+    "original_path": "MAC\n",
+    "agent_conflict_file": "AGENT\n"
+  },
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "edit": {
+    "before": "# orders-cli\n\nExamples from release 1.2\n\n## Install\n\n    pip install orders-cli==1.2\n\n## Reproduce an old run\n\n    pip install orders-cli==1.2\n",
+    "after": "# orders-cli\n\nExamples from release 1.2\n\n## Install\n\n    pip install orders-cli==1.3\n\n## Reproduce an old run\n\n    pip install orders-cli==1.2\n",
+    "events": [
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0608,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && ls -la && cat -A README.md | head -100"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0523,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && od -c README.md"
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0632,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && awk 'BEGIN{insec=0} /^## /{insec=($0==\"## Install\")} {if(insec && !done && $0 ~ /orders-cli==1\\.2$/){sub(/==1\\.2$/,\"==1.3\"); done=1} print}' README.md > README.md.tmp && mv README.md.tmp README.md && od -c README.md && cat README.md"
+        ]
+      }
+    ],
+    "read_events": [
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0504,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && ls -la && tail -c 200 README.md | od -c && echo '---' && cat README.md && echo '---' && grep -in receipt README.md; echo \"grep_exit=$?\""
+        ]
+      },
+      {
+        "phase": "agent",
+        "tool": "sh",
+        "exit_code": 0,
+        "seconds": 0.0512,
+        "argv": [
+          "sh",
+          "-c",
+          "cd /work && tail -n 1 README.md | sed 's/^Receipt:[[:space:]]*//'"
+        ]
+      }
+    ],
+    "client_value": "8d2f7bbe48fad4be",
+    "answer": "Прочитал README.md заново с диска.\n\n**Receipt из последней строки: `8d2f7bbe48fad4be`**\n\nПоследняя строка файла: `Receipt: 8d2f7bbe48fad4be`\n\nЗамечание: файл изменился после моей правки — он вырос с 143 до 170 байт, и в конце появилась строка `Receipt: ...`, которой я не добавлял (моя правка затронула только байт версии в разделе `## Install`). Остальное содержимое при этом на месте: `orders-cli==1.3` в Install и `==1.2` в разделе «Reproduce an old run»."
+  },
+  "read_only": true,
+  "disconnect": "mount_lost",
+  "cleaned": true
+}

@@ -1,0 +1,74 @@
+{
+  "client": "Darwin 25.6.0",
+  "server": "Linux 6.1.0-56-cloud-arm64 aarch64 GNU/Linux",
+  "rclone": "rclone v1.74.4",
+  "sshfs": "fusermount3 version: 3.14.0",
+  "docker": "20.10.24+dfsg1",
+  "competing_edits": [
+    {
+      "moment": "clean",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "atomic exchange",
+        "next Debian turn read the new Mac contents"
+      ],
+      "original_path": "base+agent",
+      "agent_conflict_file": null,
+      "conflicts": 0
+    },
+    {
+      "moment": "before_check",
+      "steps": [
+        "Debian wrote staging with append; Mac still contains base",
+        "Mac editor saved user"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "before_exchange",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac editor saved user",
+        "atomic exchange"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "open_fd_before_exchange",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac saved user through an already open descriptor",
+        "atomic exchange"
+      ],
+      "original_path": "user",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    },
+    {
+      "moment": "during_restore",
+      "steps": [
+        "Debian wrote staging with rename; Mac still contains base",
+        "base check passed",
+        "Mac editor saved user",
+        "atomic exchange",
+        "Mac editor saved last"
+      ],
+      "original_path": "last",
+      "agent_conflict_file": "base+agent",
+      "conflicts": 1
+    }
+  ],
+  "interrupted_write": {
+    "direct_unchanged": true,
+    "staged_target": "original"
+  },
+  "scenario": "conflicts",
+  "cleaned": true
+}
