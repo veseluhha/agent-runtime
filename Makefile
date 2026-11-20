@@ -17,6 +17,7 @@ test-infra:
 test-client:
 	docker compose exec -T gateway python -m unittest runtime.test_gateway runtime.test_smoke runtime.test_suite runtime.test_experiment
 test-ci: test-client test-infra
+	python3 -m unittest runtime.test_edits
 
 baf-record: .env
 	docker compose up -d --build --wait sandbox-manager model-proxy

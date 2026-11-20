@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .http_api import Fault, post
-from .mount import export_directory
+from .mount import check_conflicts, workspace_mount
 
 
 def run_suite(url, token, folder=Path("results/baf/live"), required=()):
@@ -46,16 +46,20 @@ def run_suite(url, token, folder=Path("results/baf/live"), required=()):
 
 def chat(url, token, args):
     access = "rw" if args.write else "ro"
-    with export_directory(args.workdir, args.ssh_host, args.ssh_config, access) as mount_id:
+    with workspace_mount(args.workdir, args.ssh_host, args.ssh_config, access) as (mount_id, edits):
         opened = post(url, "/v0/workspaces/open", {"mount_id": mount_id, "access": access}, token=token)
         session = {"session": opened["session"]}
         print(f"{opened['model']} | {access} | {session['session']}", flush=True)
         try:
             prompts = iter(args.message) if args.message else iter(lambda: input("> "), "")
-            for prompt in prompts:
+            for turn, prompt in enumerate(prompts):
+                if edits and turn:
+                    edits.refresh()
                 result = post(url, "/v0/workspaces/message", {**session, "message": prompt}, token=token, timeout=95)
                 for event in result["events"]:
                     print(f"{event['exit_code']} | {event['argv']}", flush=True)
+                if edits:
+                    check_conflicts(edits.publish())
                 print(result["answer"] or "", flush=True)
         except EOFError:
             pass
