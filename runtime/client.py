@@ -3,10 +3,11 @@ import json
 import os
 import sys
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .http_api import Fault, post
+from .http_api import Fault, TransportError, post
 from .mount import check_conflicts, workspace_mount
 
 
@@ -44,6 +45,40 @@ def run_suite(url, token, folder=Path("results/baf/live"), required=()):
     return int(passed != len(task_ids))
 
 
+def send_message(url, token, session, prompt):
+    key = {**session, "message_id": uuid.uuid4().hex}
+    body = {**key, "message": prompt}
+    deadline = time.monotonic() + 110
+    submit = True
+    recovering = False
+    delay = 0.25
+    while (remaining := deadline - time.monotonic()) > 0:
+        try:
+            if submit:
+                return post(url, "/v0/workspaces/message", body, token=token, timeout=min(95, remaining))
+            state = post(url, "/v0/workspaces/status", key, token=token, timeout=min(5, remaining))
+        except Fault as exc:
+            if not isinstance(exc, TransportError) and exc.kind != "in_progress":
+                if recovering and exc.kind == "session":
+                    raise Fault("unconfirmed", "сессия завершена, исход сообщения неизвестен", 410) from exc
+                raise
+            if not recovering:
+                print("восстанавливаю ответ на сообщение " + key["message_id"], file=sys.stderr, flush=True)
+                recovering = True
+            submit = False
+        else:
+            if state["state"] == "completed":
+                return state["result"]
+            if state["state"] == "failed":
+                raise Fault(state["kind"], state["message"], state["status"])
+            if state["state"] not in ("not_received", "running"):
+                raise ValueError("unknown workspace message state")
+            submit = state["state"] == "not_received"
+        time.sleep(min(delay, max(0, deadline - time.monotonic())))
+        delay = min(2, delay * 2)
+    raise Fault("unconfirmed", "истекло время ожидания, исход сообщения неизвестен", 504)
+
+
 def chat(url, token, args):
     access = "rw" if args.write else "ro"
     with workspace_mount(args.workdir, args.ssh_host, args.ssh_config, access) as (mount_id, edits):
@@ -55,7 +90,7 @@ def chat(url, token, args):
             for turn, prompt in enumerate(prompts):
                 if edits and turn:
                     edits.refresh()
-                result = post(url, "/v0/workspaces/message", {**session, "message": prompt}, token=token, timeout=95)
+                result = send_message(url, token, session, prompt)
                 for event in result["events"]:
                     print(f"{event['exit_code']} | {event['argv']}", flush=True)
                 if edits:
@@ -64,7 +99,13 @@ def chat(url, token, args):
         except EOFError:
             pass
         finally:
-            post(url, "/v0/workspaces/close", session, token=token)
+            failed = sys.exc_info()[0] is not None
+            try:
+                post(url, "/v0/workspaces/close", session, token=token)
+            except Fault as exc:
+                if not failed:
+                    raise
+                print(f"закрытие сессии не подтверждено -- {exc}", file=sys.stderr)
     return 0
 
 

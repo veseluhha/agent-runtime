@@ -1,0 +1,65 @@
+{
+  "client": "Darwin 25.6.0",
+  "server": "Linux 6.1.0-56-cloud-arm64 aarch64 GNU/Linux",
+  "rclone": "rclone v1.74.4",
+  "sshfs": "fusermount3 version: 3.14.0",
+  "docker": "20.10.24+dfsg1",
+  "reconnect": [
+    {
+      "cut": "before",
+      "trace": [
+        "discarded before forwarding",
+        "not_received"
+      ],
+      "model": "transport-fixture",
+      "executions": 1,
+      "cli_exit": 0,
+      "ticket": "base\nagent\n",
+      "conflict_copy": null,
+      "cleaned": true
+    },
+    {
+      "cut": "during",
+      "trace": [
+        "shell appended, waiting at barrier",
+        "running",
+        "completed"
+      ],
+      "model": "transport-fixture",
+      "executions": 1,
+      "cli_exit": 0,
+      "ticket": "base\nagent\n",
+      "conflict_copy": null,
+      "cleaned": true
+    },
+    {
+      "cut": "after",
+      "trace": [
+        "gateway returned the completed command",
+        "completed"
+      ],
+      "model": "transport-fixture",
+      "executions": 1,
+      "cli_exit": 0,
+      "ticket": "base\nagent\n",
+      "conflict_copy": null,
+      "cleaned": true
+    },
+    {
+      "cut": "edit",
+      "trace": [
+        "gateway returned the completed command",
+        "Mac editor saved",
+        "completed"
+      ],
+      "model": "transport-fixture",
+      "executions": 1,
+      "cli_exit": 1,
+      "ticket": "Mac\n",
+      "conflict_copy": "base\nagent\n",
+      "cleaned": true
+    }
+  ],
+  "scenario": "reconnect",
+  "cleaned": true
+}

@@ -1,4 +1,5 @@
 import json
+from http.client import HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -11,19 +12,25 @@ class Fault(Exception):
         self.status = status
 
 
+class TransportError(Fault):
+    """No usable HTTP response reached this caller."""
+
+
 def post(base, path, body, token=None, timeout=30):
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = "Bearer " + token
     req = Request(base + path, json.dumps(body).encode(), headers)
     try:
-        with urlopen(req, timeout=timeout) as response:
-            return json.load(response)
-    except HTTPError as exc:
-        error = json.load(exc)
-        raise Fault(error["error"], error["message"], exc.code) from exc
-    except OSError as exc:
-        raise Fault("transport", "connection failed", 502) from exc
+        try:
+            with urlopen(req, timeout=timeout) as response:
+                return json.load(response)
+        except HTTPError as exc:
+            with exc:
+                error = json.load(exc)
+            raise Fault(error["error"], error["message"], exc.code) from exc
+    except (OSError, HTTPException, ValueError) as exc:
+        raise TransportError("transport", "connection failed or incomplete response", 502) from exc
 
 
 def serve(dispatch, health=lambda: None, *, max_body=131072):

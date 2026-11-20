@@ -17,6 +17,7 @@ from runtime.http_api import Fault, post
 from runtime import client, edits as publication
 from runtime.mount import workspace_mount
 from .probe import Server, line, run, stop
+from .reconnect import run_case
 
 
 INTERRUPTED_WRITE = """
@@ -189,6 +190,12 @@ def verify(url, host, config, scenario):
         readme.write_bytes(original)
         (work / ".git").mkdir()
         (work / ".git/marker").write_text("metadata")
+        if scenario in ("all", "reconnect"):
+            result["reconnect"] = []
+            for cut in ("before", "during", "after", "edit"):
+                folder = work / cut
+                folder.mkdir()
+                result["reconnect"].append(run_case(folder, server, host, config, url, cut))
         if scenario in ("all", "conflicts"):
             result["competing_edits"] = competing_edits(work, server, host, config, request)
             result["interrupted_write"] = interrupted_edit(work, server, host, config, request)
@@ -234,7 +241,7 @@ def main():
     parser.add_argument("host")
     parser.add_argument("--url", required=True)
     parser.add_argument("--config")
-    parser.add_argument("--scenario", choices=("all", "conflicts", "cli-conflict"), default="all")
+    parser.add_argument("--scenario", choices=("all", "conflicts", "cli-conflict", "reconnect"), default="all")
     args = parser.parse_args()
     if not __debug__:
         parser.error("run without -O")
